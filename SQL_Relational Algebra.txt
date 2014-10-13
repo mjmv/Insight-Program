@@ -1,0 +1,180 @@
+Problem 1: Inspecting the Reuters Dataset; Basic Relational Algebra
+
+
+
+(a) select: Write a query that is equivalent to the following relational algebra expression.
+
+EXPRESSION:  σ10398_txt_earn(frequency) 
+
+		SQL QUERY:  
+
+		SELECT COUNT(*) 
+		FROM frequency 
+		WHERE docid = "10398_txt_earn";
+
+		RESULT:  138 
+
+
+
+(b) select project: Write a SQL statement that is equivalent to the following relational algebra expression.
+
+EXPRESSION:  πterm(σdocid=10398_txt_earn and count=1(frequency)) 
+
+		SQL QUERY: 
+
+		SELECT COUNT(term) 
+		FROM frequency 
+		WHERE 
+		(SELECT docid = '10398_txt_earn' and count = '1'); 
+
+		RESULT:  110
+
+
+
+(c) union: Write a SQL statement that is equivalent to the following relational algebra expression. (Hint: you can use the UNION keyword in SQL)
+
+EXPRESSION:  πterm(σdocid=10398_txt_earn and count=1(frequency)) U πterm(σdocid=925_txt_trade and count=1(frequency)) 
+
+		SQL QUERY (w/o UNION):  
+
+		SELECT COUNT(DISTINCT term)
+		FROM frequency
+		WHERE docid IN ("925_txt_trade", "10398_txt_earn")
+		and count = '1';
+
+
+		SQL QUERY w/UNION
+
+		SELECT COUNT(term)
+		FROM(
+		SELECT term
+		FROM frequency
+		WHERE docid IN ("10398_txt_earn") AND count = '1'
+		UNION
+		SELECT term
+		FROM frequency
+		WHERE docid IN ("925_txt_trade") AND count = '1');
+
+		RESULT: 324
+
+
+
+(d) count: Write a SQL statement to count the number of documents containing the word "parliament"
+
+		SQL QUERY:
+
+		SELECT COUNT(*) 
+		FROM frequency 
+		WHERE term = "parliament";
+
+
+
+(e) big documents Write a SQL statement to find all documents that have more than 300 total terms, including duplicate terms. (Hint: You can use the HAVING clause, or you can use a nested query. Another hint: Remember that the count column contains the term frequencies, and you want to consider duplicates.) (docid, term_count) 
+
+		SQL QUERY:
+
+		SELECT COUNT(docidCounts)
+		FROM (
+		SELECT COUNT(docid) AS docidCounts 
+		FROM frequency 
+		GROUP BY docid
+		HAVING SUM(count) > 300);
+
+		RESULT: 107
+
+
+
+(f) two words: Write a SQL statement to count the number of unique documents that contain both the word 'transactions' and the word 'world'.
+
+		SQL QUERY:
+
+		SELECT COUNT(DISTINCT docid)
+		FROM frequency
+		WHERE term IN ("transactions" AND "world");
+
+		RESULT: 3
+
+
+Problem 2: Matrix Multiplication in SQL
+
+ Recall from lecture that a sparse matrix has many positions with a value of zero.
+
+Systems designed to efficiently support sparse matrices look a lot like databases: They represent each cell as a record (i,j,value).
+
+The benefit is that you only need one record for every non-zero element of a matrix.
+
+For example, the matrix
+
+0	2	-1
+1	0	0
+0	0	-3
+0	0	0
+
+can be represented as a table
+row # 	column # 	value
+0 	1 	          2
+0 	2 	         -1
+1 	0 	          1
+2 	2 	         -3
+
+Take a minute to make sure you understand how to convert back and forth between these two representations.
+
+Now, since you can represent a sparse matrix as a table, it's reasonable to consider whether you can express matrix multiplication as a SQL query and whether it makes sense to do so.
+
+Within matrix.db, there are two matrices A and B represented as follows:
+
+A(row_num, col_num, value)
+
+B(row_num, col_num, value)
+
+The matrix A and matrix B are both square matrices with 5 rows and 5 columns each.
+
+(g) multiply: Express A X B as a SQL query, referring to the class lecture for hints.
+
+
+		SQL QUERY:  
+
+		SELECT a.row_num, b.col_num, SUM(a.value*b.value)
+		FROM a, b
+		WHERE a.col_num = b.row_num
+		GROUP BY a.row_num, b.col_num;
+
+
+		RESULT:
+
+		row_  col_num        SUM(
+		----  -------------  ----
+		0     0              10284
+		0     1              5221
+		0     2              990 
+		0     3              1320
+		0     4              234 
+		1     0              9825
+		1     1              2482
+		1     2              54  
+		1     3              1269
+		1     4              1041
+		2     0              4198
+		2     1              735 
+		2     2              3954
+		2     3              2874
+		3     0              9305
+		3     1              898 
+		3     3              1881
+		3     4              201 
+		4     0              3038
+		4     1              7152
+		4     4              4083
+
+
+
+
+
+
+
+
+
+
+
+
+
